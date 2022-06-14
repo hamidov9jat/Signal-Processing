@@ -1,0 +1,352 @@
+%
+% UFAZ 121021
+% 
+%
+%
+% I will present the work in matlab as it is easier to
+% do the courses and presentation of results-
+%
+% see this to see the little differences
+% https://pyzo.org/python_vs_matlab.html
+% https://realpython.com/matlab-vs-python/
+%
+% Afterwood I will provide (send) the codes in matlab and in python but you
+% have to do at home, first. This part is very easy to implement in python.
+%
+% 
+% we are going to use sea ice surface data from the northern hemisphere.
+% These are in a matrix called ICE of 42 lines x 13 columns.
+%
+% Let's look at the matrix. It has one column for years, and twelve columns
+% corresponding to the monthly mean ice surface
+%
+size(ICE)
+% 42 lines and 13 columns
+%
+% first we have to transform the matrix into two columns, 
+% one for dates (in months) and the second for data.
+% that is, something alike the one that I'm going to show.
+-
+
+%
+% you have a matrix of 42 lines and 13 columns
+% I have to transform it in a matrix of 2 columns and 42 years x 12 months.
+% 1979 january  , then the data for january
+% 1979 february,  *       *         february
+% 
+% because each line in ICE represents a year (first column) and
+% % the other columns represent the months
+% % for example the first year
+% 1.9790000e+03   1.5410000e+01   1.6180000e+01   1.6340000e+01   1.5450000e+01   1.3860000e+01   1.2530000e+01   1.0310000e+01   8.0400000e+00   7.0500000e+00   8.7500000e+00   1.0940000e+01   1.3340000e+01
+% it is equal to
+% YEAR datamonthjanuary datamonthfebruary etc .... datamonthdecember
+% YEAR(1) 2                3                         13
+% % ICE is the extent of the surface of the  sea ice in the north hemisphere
+% %
+% from a matrix of 42 lines and 13 columns, we want to transform into 2
+% colums
+
+
+%  1st column   2nd column
+% YEAR1 + MONTH_1   datamonthjanuary
+% YEAR1 + MONTH_2   datamonthfebruary
+% ...
+%  YEAR + MONTH_12 datamonthdecember
+%
+% because you have 42 lines and 13 columns, the length of the time series
+% will be 42 x 12 
+% %%
+% let's suppose only one year (1979)
+% then you cn change the matrix this ways
+% %
+%
+m=0;
+% I will have two counters i and j
+%
+for i=1:1 % because only one year 1979
+    % the second counter, counters for the 12 months
+    for j=1:12 % you move over the first line
+        % we will create a matrix  X of two columns
+        X(j,2)=ICE(i,j+1);
+    end
+end
+% this the proof that is work
+% now the real data, that is the longer data.
+%
+% here the difference is that you're not doing this for the first 12 months, 
+% but for the entire data set. That is 42 years x 12 months
+% so you have to create a counter that takes this in account
+%
+m=0; % create a counting outside the for's
+% that is to take in account all the columns and months
+% the matri will be called A
+for i=1:42 % you go over the first column % 42 lines % bcs 42 years of data
+    for j=1:12 % bcs you have 12 months
+        m=m+1;
+        %A(m,1)=ICE(1,1)+(m-0.5)./12; % this is time, in months. 
+        A(m,2)=ICE(i,j+1);
+    end
+end
+%
+% at the end you'll have a matrix of 2 columns, length of 42x12 lines
+size(A)
+
+%ICE (42 lines x 13 columns) ---> A ( 504 lines, 2 columns)
+%--> 504, which is exactly 42x 12
+% location of time is important. Where to put the virtual ddate
+% we did the first part, which is creating the data column
+%
+% II : let us create the date column
+%
+%
+% %  how to date a month ?
+% is the month of january, 1979.0 ? or 1979.0something ?
+% the year is a fraction of 1. How many fractions in a year ? 12.
+% the basic idea is to say, ok well, let us just apply 1/12 every month
+m=0;
+for i=1:1 % because only one year 1979
+    for j=1:12 % you move over the first column
+        % first idea 1/12
+        %X(j,1)=1979+j*1./12;
+
+        % if you do that at 12, you will not be anymore in 1979, but in
+        % 1980... 1979+12/12=1980...!
+        % you cant do that, because december belongs to the year 1979
+        % second idea, delay
+        % X(i,1)=1979+(j-1)*1./12;
+ % in this case, first month of the year is 1979.0
+        % last month of the year is 1979 + 11/12. Ok
+        % the question is january is located at day 1 of 1979, or wherever
+        % else ?
+        % so generally people choose the inbetween solution. In the middle.
+        X(i,1)=1979+(j-0.5)*1./12;
+    end
+end
+%
+%
+%
+%
+%
+m=0; % create a counting outside the for's
+% for to take in account all the columns and months
+for i=1:42 % you go over the first column % 42 lines % bcs 42 years of data
+    for j=1:12 % bcs you have 12 months
+        m=m+1;
+        A(m,1)=ICE(i,1)+(j-0.5)./12; % this is time, in months. 
+        A(m,2)=ICE(i,j+1);
+    end
+end
+%
+plot(A(:,1),A(:,2))
+%
+RAW=A;
+% normally 504 lines x 2 columns
+%
+% represent those data
+%
+plot(RAW(:,1),RAW(:,2))
+% 
+% what do we see in this time series ?
+%
+%
+% let's calculate the average
+mu_RAW=mean(RAW(:,2));
+mu_RAW
+% result --> 11.48
+% calculate standard deviation
+stdev_RAW=std(RAW(:,2));
+stdev_RAW
+% result --> 3.2568
+% the standard deviation is also called the error the about the mean.
+% or the mean error, or the etc etc etc. There's many names for the
+% standard deviation (also called the 66...)
+%
+% let's plot the mean and the standard deviation
+% for that we have to put it in a vector.
+% let's put it in column 3
+%
+RAW(:,3)=mu_RAW;
+%
+% let's plot again with the average
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3))
+%
+%
+% plot it with standard deviation
+% as it is something with respect to the standard deviation then, we add
+% and subtract it from the mean
+%
+RAW(:,4)=mu_RAW + stdev_RAW;
+RAW(:,5)=mu_RAW - stdev_RAW;
+%
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3),RAW(:,1),RAW(:,4),RAW(:,1),RAW(:,5))
+%
+%
+% let's see now if there is any signal that goes beyond 
+% the 2nd standard deviation 
+%
+RAW(:,6)=mu_RAW + 2*stdev_RAW;
+RAW(:,7)=mu_RAW - 2*stdev_RAW;
+%
+%
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3),RAW(:,1),RAW(:,6),RAW(:,1),RAW(:,7))
+% let's put them all together
+plot(RAW(:,1),RAW(:,2:7))
+%
+% let's change the colors or signs...
+%
+%
+%
+% let's make a sliding average of 25 months, i.e. 24 months (2 years) + 1 month-
+% why 25 and not 24 ?
+M(:,3)= movmean(RAW(:,2),121);
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3),RAW(:,1),M(:,3));
+
+%
+%
+mu_RAW01=mean(RAW(1:252,2));
+M_01(1:252,1)=mu_RAW01;
+mu_RAW02=mean(RAW(253:504,2));
+M_01(253:504,1)=mu_RAW02;
+%
+%
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3), RAW(:,1), M_01(:,1)) 
+%
+std_RAW01=std(RAW(1:252,2));
+M_02(1:252,1)=mu_RAW01-std_RAW01;
+std_RAW02=std(RAW(253:504,2));
+M_02(253:504,1)= mu_RAW02-std_RAW02;
+%
+%
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3), RAW(:,1), M_01(:,1), RAW(:,1), M_02(:,1)) 
+
+% let's calculate the moving standard deviation
+%
+MX = movstd(RAW(:,2),25);
+M(:,4)=M(:,3)+ MX;
+M(:,5)=M(:,3)- MX;
+% 
+%
+% 
+%
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3),RAW(:,1),M(:,4),A(:,1),M(:,5))
+hold on
+plot(RAW(:,1),RAW(:,2),RAW(:,1),RAW(:,3:5))
+% ok. Mean and standard deviation ok.
+%
+% course 120121 stopped here.
+%
+load work_121021.mat
+% 
+figure
+plot(RAW(:,1),RAW(:,2))
+
+% we can construct monthly normals
+% making the average of all months, from january to december
+
+% let us have a look at another time series, derived from the first.
+% This called the anomaly.
+% plot it
+hold on
+plot(ANOM(:,1),ANOM(:,2))
+% plot it with the RAW signal
+hold on
+plot(RAW(:,1),RAW(:,2)-ANOM(:,2))
+% let us plot it all together with subplots : you can do the same with
+% python : 
+% in fact the anomaly is resulting from a decomposition
+% RAW  = SEASONAL + TREND
+% here RAW = MONTHLY NORMALS + TREND 
+% plot the difference between the original signal RAW and the anomaly ANOM
+%
+plot(RAW(:,1),RAW(:,2)-ANOM(:,2))
+% plot the three of them
+%
+%
+plot(RAW(:,1),RAW(:,2), RAW(:,1),RAW(:,2)-ANOM(:,2),RAW(:,1),ANOM(:,2))
+%
+%
+
+% so now, let's only work with the anomaly.
+% compute, mean, std
+% plot mean, std1, std2
+figure
+plot(A(:,1),ANOM(:,2))
+M=mean(ANOM(:,2));
+ANOM(:,3)=M;
+S=std(ANOM(:,2));
+ANOM(:,4)=S;
+Time=A(:,1);
+%
+figure
+plot(Time,ANOM(:,2), Time,ANOM(:,3), Time,ANOM(:,3)+ANOM(:,4), Time,ANOM(:,3)-ANOM(:,4))
+
+% well, in this case, really the mean and std does not mean anything...
+%
+%
+% so now, let us compute the moving average and moving std
+%
+% 
+
+%
+%
+mu_ANOM01=mean(ANOM(1:252,2));
+AN_01(1:252,1)=mu_ANOM01;
+mu_ANOM02=mean(ANOM(253:504,2));
+AN_01(253:504,1)=mu_ANOM02;
+%
+%
+%
+std_ANOM01=std(ANOM(1:252,2));
+STD_01(1:252,1)=std_ANOM01;
+std_ANOM02=mean(ANOM(253:504,2));
+STD_01(253:504,1)=std_ANOM02;
+%
+figure
+plot(Time,ANOM(:,2), Time,AN_01(:,1), Time,AN_01(:,1)+STD_01(:,1), Time,AN_01(:,1)-STD_01(:,1))
+
+
+ANOM(:,5)= movmean(ANOM(:,2),25);
+ANOM(:,6)= movstd(ANOM(:,2),25);
+
+figure
+plot(Time,ANOM(:,2), Time,ANOM(:,5), Time,ANOM(:,5)+ANOM(:,6), Time,ANOM(:,5)-ANOM(:,6))
+figure
+plot(Time,ANOM(:,2), Time,ANOM(:,5), Time,ANOM(:,5)+ANOM(:,6), Time,ANOM(:,5)-ANOM(:,6), Time,ANOM(:,5)+2*ANOM(:,6), Time,ANOM(:,5)-2*ANOM(:,6))
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THE MEDIAN
+%Now Let's have a look at what the median means...
+%
+%
+% let's take this vector of data.
+%
+R= [ 8 9 7 4 5 6 7 8 9 ];
+% let's compute the mean
+%
+%
+mean(R)
+% 7
+%
+% let's compute the median
+%
+median(R)
+% why ?
+% 8 9 7 4 5 6 7 8 9 --> 4 5 6 7 7 8 8 9 9 --> 
+% the median is located in the middle of the time series
+%
+% let us just change the vector a little bit. 99 rather than 9
+R= [ 8 9 7 4 5 6 7 8 99 ];
+% let us compute the mean
+mean(R)
+% indeed it changes : 17
+% let us compute the median
+%
+median(R)
+% 7... it did't change. The median is robust and resistant !!
+%
+% 8 9 7 4 5 6 7 8 99 --> 4 5 6 7 7 8 8 9 99 
+%
+
+save work120121.mat
